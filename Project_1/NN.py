@@ -3,67 +3,78 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
+
 class NeuralNetwork:
-    def __init__(self, layer_sizes=(1, 10, 1), learning_rate=0.3, regularization=0, epochs=2, batch_size=100):
+    def __init__(self, layer_sizes=(4, 10, 3), learning_rate=0.3, regularization=0, epochs=2, batch_size=100):
         self.learning_rate = learning_rate
         self.regularization = regularization
         self.epochs = epochs
         self.batch_size = batch_size
 
         self.layer_sizes = layer_sizes
-        self.weights = [self.generate_weights(layer_sizes[i + 1], layer_sizes[i] + 1) for i in range(len(layer_sizes) - 1)]
+        self.weights = [self.generate_weights(layer_sizes[i + 1], layer_sizes[i] + 1) for i in
+                        range(len(layer_sizes) - 1)]
 
     """
         Randomly generate weight matrix.
     """
+
     def generate_weights(self, rows, columns):
         return np.random.rand(rows, columns) - 0.5
 
     """
         Sigmoid activation function.
     """
+
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
     """
         Relu activation function.
     """
+
     def relu(self, x):
         return np.maximum(0, x)
 
     """
         Tanh activation function.
     """
+
     def tanh(self, x):
         return np.tanh(x)
 
     """
         Column-vectorize an array.
     """
-    def column_vectorize(self, arr):       
+
+    def column_vectorize(self, arr):
         return np.array(arr).reshape(len(arr), 1)
 
     """
         Row-vectorize an array.
     """
+
     def row_vectorize(self, arr):
         return np.array(arr).reshape(1, len(arr))
 
     """
         Vectorize the labels.
      """
+
     def vectorize_labels(self, labels):
         return [[int(labels[i] == j) for j in range(self.layer_sizes[-1])] for i in range(len(labels))]
 
     """
         Adds a bias unit to activations of a layer.
     """
+
     def add_bias_unit(self, x):
         return np.insert(x, 0, 1)
 
     """
         Forward propagation.
     """
+
     def forward_propagation(self, x):
         x = self.add_bias_unit(x)
         activations = [x]
@@ -73,10 +84,11 @@ class NeuralNetwork:
             x = self.add_bias_unit(self.sigmoid(z))
             activations.append(x)
         return activations
-    
+
     """
         Backward propagation.
     """
+
     def backward_propagation(self, activations, labels):
         output = activations[-1][1:]
 
@@ -94,6 +106,7 @@ class NeuralNetwork:
     """
         Fits the Neural Network's weights using backpropagation.
     """
+
     def fit(self, input_data, labels):
         input_data = np.array(input_data)
         labels = np.array(self.vectorize_labels(labels))
@@ -117,11 +130,13 @@ class NeuralNetwork:
                 for layer in range(len(self.weights)):
                     regularization_matrix = np.array(self.weights[layer]) * self.regularization
                     regularization_matrix.T[0] = 0
-                    self.weights[layer] -= (self.learning_rate * gradients[layer] + regularization_matrix) / self.batch_size
+                    self.weights[layer] -= (self.learning_rate * gradients[
+                        layer] + regularization_matrix) / self.batch_size
 
     """
         Calculate the Mean Squared Error.
     """
+
     def mean_squared_error(self, input_data, labels):
         sq_error = 0
         for i, x in enumerate(input_data):
@@ -131,6 +146,7 @@ class NeuralNetwork:
     """
         Predicts values for the inputs through forward propagation.
     """
+
     def predict(self, input_data):
         input_data = np.array(input_data)
         predictions = []
@@ -159,7 +175,7 @@ def transform_features(df):
 train_df, test_df = load_data()
 
 # Initialize network and features
-nn = NeuralNetwork(layer_sizes=(4, 10, 150, 50, 3), regularization=3e-2, learning_rate=3, batch_size=90, epochs=5000)
+nn = NeuralNetwork(layer_sizes=(4, 10, 3), regularization=0, learning_rate=3, batch_size=90, epochs=1000)
 features = ["SL", "SW", "PL", "PW"]
 
 # Scale data
@@ -167,16 +183,18 @@ scaler = StandardScaler()
 train_data = scaler.fit_transform(train_df[features].values)
 
 # Fit the network
+start_time = time.perf_counter()
+
 nn.fit(train_data, list(train_df["Y"]))
+end_time = time.perf_counter()
+execution_time = end_time - start_time
 
 # Make predictions
-start_time = time.perf_counter()
 test_df["Predictions"] = nn.predict(scaler.transform(test_df[features]))
-end_time = time.perf_counter()
-execution_time = (end_time - start_time) * 1000
 print(test_df)
 
 # Calculate accuracy
 accuracy = len(test_df[test_df["Predictions"] == test_df["Y"]]) / len(test_df)
 print("The accuracy is: " + str(accuracy))
-print("Execution time: ", round(execution_time, 3), "milliseconds")
+print("Execution time: ", round(execution_time, 3), "seconds")
+
