@@ -157,7 +157,7 @@ class NeuralNetwork:
 
 def load_data():
     # Load CSV file into a dataframe
-    df = pd.read_csv("iris.csv").sample(frac=1, random_state=123)
+    df = pd.read_csv("Project_1/iris.csv").sample(frac=1, random_state=123)
     # Execute any necessary transformations
     transform_features(df)
     # Split data into 60-40 ratio
@@ -175,7 +175,7 @@ def transform_features(df):
 train_df, test_df = load_data()
 
 # Initialize network and features
-nn = NeuralNetwork(layer_sizes=(4, 10, 3), regularization=0, learning_rate=3, batch_size=90, epochs=1000)
+nn = NeuralNetwork(layer_sizes=(4, 3), regularization=0, learning_rate=3, batch_size=90, epochs=1000)
 features = ["SL", "SW", "PL", "PW"]
 
 # Scale data
@@ -197,4 +197,3 @@ print(test_df)
 accuracy = len(test_df[test_df["Predictions"] == test_df["Y"]]) / len(test_df)
 print("The accuracy is: " + str(accuracy))
 print("Execution time: ", round(execution_time, 3), "seconds")
-
